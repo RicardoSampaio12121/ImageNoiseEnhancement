@@ -62,6 +62,9 @@ int main(void) //P1
 	system("cmd /c start FilterGear Resultados/P1/imagemAbertura.pgm");     // Output
 	system("cmd /c start FilterGear Resultados/P1/imagemFechamento.pgm");   // Output
 	system("cmd /c start FilterGear Resultados/P1/imagemFinal.pgm");        // Output
+
+	printf("Pressione qualquer tecla para sair...\n");
+	getchar();
     
     return 0;
 }
