@@ -9,7 +9,7 @@ Author Claudio Silva
 #include "vc.h"
 
 
-int main(void) //P1
+int mainP1(void) //P1
 {
     IVC *image[6];
     OVC *blobs;
@@ -75,7 +75,7 @@ int main(void) //P1
     return 0;
 }
 
-int mainP2(void) //P2
+int main(void) //P2
 {
 	IVC* imagemCelulas, * imagemCinzentos, * imagemBinarizacao, * imagemAbertura, * imagemFechamento, * imagemLabels, * imagemMarcada;
 	OVC* blobs;

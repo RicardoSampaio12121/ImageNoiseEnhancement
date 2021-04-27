@@ -1028,9 +1028,22 @@ int vc_mark_blobs(IVC* src, IVC* dst, OVC* blobs, int nblobs)
 	{
 		// Marcar o centro de massa
 		pos = blobs[i].yc * bytesperline + blobs[i].xc * channels;
-		datadst[pos] = (unsigned char) 255;
-		datadst[pos + 1] = (unsigned char) 255;
-		datadst[pos + 2] = (unsigned char) 255;
+		datadst[pos] = (unsigned char) 127;
+		datadst[pos + 1] = (unsigned char) 127;
+		datadst[pos + 2] = (unsigned char) 127;
+		datadst[pos - 1] = (unsigned char) 255;
+		datadst[pos - 2] = (unsigned char) 255;
+		datadst[pos - 3] = (unsigned char) 255;
+		datadst[pos + 3] = (unsigned char) 255;
+		datadst[pos + 4] = (unsigned char) 255;
+		datadst[pos + 5] = (unsigned char) 255;
+		datadst[pos - bytesperline] = (unsigned char) 255;
+		datadst[pos - bytesperline + 1] = (unsigned char) 255;
+		datadst[pos - bytesperline + 2] = (unsigned char) 255;
+		datadst[pos + bytesperline] = (unsigned char) 255;
+		datadst[pos + bytesperline + 1] = (unsigned char) 255;
+		datadst[pos + bytesperline + 2] = (unsigned char) 255;
+
 
 		// Coordenadas da caixa delimitadora
 		blobYmin = blobs[i].y;
