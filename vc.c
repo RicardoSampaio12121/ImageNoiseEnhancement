@@ -565,10 +565,15 @@ int vc_binary_circular_dilate(IVC* src, IVC* dst, int kernel)
  */
 int vc_binary_open_circular(IVC *src, IVC *dst, int kernelErode, int kernelDilate)
 {
-    IVC *tmp = vc_image_new(src->width, src->height, src->channels, src->levels);
+	int output = 1;
+    IVC* imageAux = vc_image_new(src->width, src->height, src->channels, src->levels);
 
-    vc_binary_circular_erode(src, tmp, kernelErode);
-    vc_binary_circular_dilate(tmp, dst, kernelDilate);
+    output &= vc_binary_circular_erode(src, imageAux, kernelErode);
+    output &= vc_binary_circular_dilate(imageAux, dst, kernelDilate);
+
+    vc_image_free(imageAux);
+
+    return output;
 }
 
 /*
@@ -656,11 +661,17 @@ OVC* vc_binary_blob_labelling(IVC *src, IVC *dst, int *nlabels)
 			// A B C
 			// D X
 
-			posA = (y - 1) * bytesperline + (x - 1) * channels; // A
+		/* 	posA = (y - 1) * bytesperline + (x - 1) * channels; // A
 			posB = (y - 1) * bytesperline + x * channels; // B
 			posC = (y - 1) * bytesperline + (x + 1) * channels; // C
 			posD = y * bytesperline + (x - 1) * channels; // D
-			posX = y * bytesperline + x * channels; // X
+			posX = y * bytesperline + x * channels; // X */
+
+			posA = (int) datadst[(y - 1) * bytesperline + (x - 1) * channels];
+            posB = (int) datadst[(y - 1) * bytesperline + x * channels];
+            posC = (int) datadst[(y - 1) * bytesperline + (x + 1) * channels];
+            posD = (int) datadst[y * bytesperline + (x - 1) * channels];
+            posX = y * bytesperline + x * channels; // X
 
 			// Se o pixel foi marcado
 			if (datadst[posX] != 0)
