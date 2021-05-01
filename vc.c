@@ -885,10 +885,10 @@ int vc_binary_blob_info(IVC *src, OVC *blobs, int nblobs)
 		blobs[i].height = (ymax - ymin) + 1;
 
 		// Centro de Gravidade
-		//blobs[i].xc = (xmax - xmin) / 2;
-		//blobs[i].yc = (ymax - ymin) / 2;
-		blobs[i].xc = sumx / MAX(blobs[i].area, 1);
-		blobs[i].yc = sumy / MAX(blobs[i].area, 1);
+        // x médio (média de todos os valores/coordenadas em x)
+        blobs[i].xc = round((float)sumx / (float)MAX(blobs[i].area, 1)); // Usa-se o MAX para nunca dar 0
+        // y médio (média de todos os valores/coordenadas em y)
+        blobs[i].yc = round((float)sumy / (float)MAX(blobs[i].area, 1));
 	}
 
 	return 1;
