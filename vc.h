@@ -1,13 +1,3 @@
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//           INSTITUTO POLIT�CNICO DO C�VADO E DO AVE
-//                          2011/2012
-//             ENGENHARIA DE SISTEMAS INFORM�TICOS
-//                    VIS�O POR COMPUTADOR
-//
-//             [  DUARTE DUQUE - dduque@ipca.pt  ]
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
 #define VC_DEBUG
 
 

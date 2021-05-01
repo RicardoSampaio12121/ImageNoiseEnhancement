@@ -1,7 +1,7 @@
 /*
-Author: Felipe Gajo
-Author: Riardo Sampaio
-Author Claudio Silva
+Author: Filipe Gajo
+Author: Ricardo Sampaio
+Author: Claudio Silva
 */
 
 #include <stdio.h>
@@ -11,37 +11,37 @@ Author Claudio Silva
 
 int mainP1(void) //P1
 {
-    IVC *image[6];
+    IVC *imagemCerebro, *imagemSegmentada, *imagemOpen, *imagemClose, *imagemLabelled, *imagemFinal;
     OVC *blobs;
 
     int nlabels;
+	
+    imagemCerebro = vc_read_image("Imagens/cerebro.pgm");
+    imagemSegmentada = vc_image_new(imagemCerebro->width, imagemCerebro->height, imagemCerebro->channels, imagemCerebro->levels);
+    imagemOpen = vc_image_new(imagemCerebro->width, imagemCerebro->height, imagemCerebro->channels, imagemCerebro->levels); 
+    imagemClose = vc_image_new(imagemCerebro->width, imagemCerebro->height, imagemCerebro->channels, imagemCerebro->levels); 
+    imagemLabelled = vc_image_new(imagemCerebro->width, imagemCerebro->height, imagemCerebro->channels, imagemCerebro->levels); 
+    imagemFinal = vc_image_new(imagemCerebro->width, imagemCerebro->height, imagemCerebro->channels, imagemCerebro->levels); 
 
-    image[0] = vc_read_image("Imagens/cerebro.pgm");
-    image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
-    image[2] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); 
-    image[3] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); 
-    image[4] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); 
-    image[5] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); 
-
-    if(image[0] == NULL)
+    if(imagemCerebro == NULL)
     {
         printf("Error -> vc_read_image(): \n\tFile not found!\n");
         getchar();
         return 0;
     }
 
-    vc_gray_to_binary_max_min(image[0], image[1], 74, 199); // Faz a segmentação da imagem original
-    vc_binary_open_circular(image[1], image[2], 9, 9);         // Exclui o restante do cranio que sobrou da segmentação
-    vc_binary_close_circular(image[2], image[3], 9, 9);        // Fecha buracos no cerebro resultantes do open
+    vc_gray_to_binary_max_min(imagemCerebro, imagemSegmentada, 74, 199);    // Faz a segmentação da imagem original
+    vc_binary_open_circular(imagemSegmentada, imagemOpen, 9, 9);         // Exclui o restante do cranio que sobrou da segmentação
+    vc_binary_close_circular(imagemOpen, imagemClose, 9, 9);        // Fecha buracos no cerebro resultantes do open
 
-    blobs = vc_binary_blob_labelling(image[3], image[4], &nlabels); // Faz o labbeling da imagem
+    blobs = vc_binary_blob_labelling(imagemClose, imagemLabelled, &nlabels); // Faz o labbeling da imagem
 
     if (blobs != NULL)
     {
-        vc_binary_blob_info(image[4], blobs, nlabels); // Faz o calculo de algumas informações da imagem
+        vc_binary_blob_info(imagemLabelled, blobs, nlabels); // Faz o calculo de algumas informações da imagem
     }
 
-    vc_binary_to_gray(image[0], image[3], image[5]); // Coloriza os pixeis da imagem com os respetivos pixeis da imagem original
+    vc_binary_to_gray(imagemCerebro, imagemClose, imagemFinal); // Coloriza os pixeis da imagem com os respetivos pixeis da imagem original
     
     // Mostrar info da imagem
     printf("Área: %d\n"                 , blobs->area);
@@ -49,18 +49,18 @@ int mainP1(void) //P1
     printf("Centro de massa: (%d, %d)\n", blobs->xc, blobs->yc);
     
     // Escreve as imagens
-    vc_write_image("Resultados/P1/imagemBinarizacao.pgm" , image[1]);
-    vc_write_image("Resultados/P1/imagemAbertura.pgm"    , image[2]);
-    vc_write_image("Resultados/P1/imagemFechamento.pgm"  , image[3]);
-    vc_write_image("Resultados/P1/imagemFinal.pgm"       , image[5]);
+    vc_write_image("Resultados/P1/imagemBinarizacao.pgm" , imagemSegmentada);
+    vc_write_image("Resultados/P1/imagemAbertura.pgm"    , imagemOpen);
+    vc_write_image("Resultados/P1/imagemFechamento.pgm"  , imagemClose);
+    vc_write_image("Resultados/P1/imagemFinal.pgm"       , imagemFinal);
 
     // Liberta as imagens da memória  
-    vc_image_free(image[0]);
-    vc_image_free(image[1]);
-    vc_image_free(image[2]);
-    vc_image_free(image[3]);
-    vc_image_free(image[4]);
-    vc_image_free(image[5]);
+    vc_image_free(imagemCerebro);
+    vc_image_free(imagemSegmentada);
+    vc_image_free(imagemOpen);
+    vc_image_free(imagemLabelled);
+    vc_image_free(imagemClose);
+    vc_image_free(imagemFinal);
 
     //Abre imagens
     system("cmd /c start FilterGear Imagens/cerebro.pgm");                  // Input
@@ -105,7 +105,7 @@ int main(void) //P2
 	// Extrair a componente azul da imagem a cores numa imagem em tons de cinzento
 	vc_rgb_get_blue_gray(imagemCelulas, imagemCinzentos);
 	vc_write_image("Resultados/P2/imagemCinzentos.pgm", imagemCinzentos);
-	
+
     // 2 - Transformar imagem em tons de cinzento numa imagem binária
 	// Threshold calculado a partir de várias medições da cor das células no Gimp (33)
 	vc_gray_to_binary(imagemCinzentos, imagemBinarizacao, 33);
@@ -118,10 +118,12 @@ int main(void) //P2
     // 4 - Preencher falhas dentro das células (c/ fechamento)
 	vc_binary_close_circular(imagemAbertura, imagemFechamento, 11, 11);
 	vc_write_image("Resultados/P2/imagemFechamento.pgm", imagemFechamento);
+	puts("chega aqui");
 	
     // 5 - Calcular o nº de células
 	blobs = vc_binary_blob_labelling(imagemFechamento, imagemLabels, &nblobs);
 	printf("\nNumero de celulas: %d\n\n", nblobs);
+	puts("chega aqui 2");
 
 	// Calcular a área de cada núcleo
 	vc_binary_blob_info(imagemLabels, blobs, nblobs);

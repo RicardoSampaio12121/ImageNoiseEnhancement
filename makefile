@@ -1,5 +1,5 @@
 output: main.o vc.o
-		gcc main.o vc.o -o prog
+		gcc main.o vc.o -lm -o prog
 
 p1.o: main.c
 		gcc -c main.c

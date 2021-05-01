@@ -1,12 +1,3 @@
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//           INSTITUTO POLIT�CNICO DO C�VADO E DO AVE
-//                          2011/2012
-//             ENGENHARIA DE SISTEMAS INFORM�TICOS
-//                    VIS�O POR COMPUTADOR
-//
-//             [  DUARTE DUQUE - dduque@ipca.pt  ]
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 // Desabilita (no MSVC++) warnings de fun��es n�o seguras (fopen, sscanf, etc...)
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -22,7 +13,16 @@
 //            FUN��ES: ALOCAR E LIBERTAR UMA IMAGEM
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-// Alocar mem�ria para uma imagem
+/*
+ * Função: vc_image_new
+ * ----------------------------
+ *	 Aloca memória para uma imagem
+ *
+ *	 width: 	largura
+ *	 height: 	altura
+ *	 channels:  número de canais
+ *	 levels: 	níveis de cor
+ */
 IVC *vc_image_new(int width, int height, int channels, int levels)
 {
     IVC *image = (IVC *)malloc(sizeof(IVC));
@@ -47,7 +47,13 @@ IVC *vc_image_new(int width, int height, int channels, int levels)
     return image;
 }
 
-// Libertar mem�ria de uma imagem
+/*
+ * Função: vc_image_free
+ * ----------------------------
+ *	 Liberta memória de uma imagem
+ *
+ *	 image:		endereço de memória da imagem
+ */
 IVC *vc_image_free(IVC *image)
 {
     if (image != NULL)
@@ -69,6 +75,16 @@ IVC *vc_image_free(IVC *image)
 //    FUN��ES: LEITURA E ESCRITA DE IMAGENS (PBM, PGM E PPM)
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+/*
+ * Função: netpbm_get_token
+ * ----------------------------
+ *   Recebe um ficheiro, um endereço para uma string e um comprimento e DEVOLVE uma string
+ *
+ *   file:          ficheiro 
+ *   tok            endereço para uma string
+ *   len:		    comprimento
+ */
 char *netpbm_get_token(FILE *file, char *tok, int len)
 {
     char *t;
@@ -106,6 +122,19 @@ char *netpbm_get_token(FILE *file, char *tok, int len)
     return tok;
 }
 
+
+/*
+ * Função: unsigned_char_to_bit
+ * ----------------------------
+ *	 ||| Comprime 1 byte/píxel para 1 bit/píxel (= 1 byte(8bits)/8 píxeis) |||
+ * 	 [Só está a ser usada em imagens PBM (0 ou 1 em cada píxel) pois só nessas 
+ * 	 é que se pode converter em 1 bit/píxel (só 0 ou 1)]
+ *
+ *   datauchar:     array com os pixeis 
+ *   databit:       array auxiliar vazio onde serão armazenados os pixeis comprimidos
+ *   width:		    comprimento
+ *	 height:		largura
+ */
 long int unsigned_char_to_bit(unsigned char *datauchar, unsigned char *databit, int width, int height)
 {
     int x, y;
@@ -150,6 +179,16 @@ long int unsigned_char_to_bit(unsigned char *datauchar, unsigned char *databit, 
     return counttotalbytes;
 }
 
+/*
+ * Função: bit_to_unsigned_char
+ * ----------------------------
+ *	 Descomprime 1 bit/píxel (= 1 byte(8bits)/8 píxeis) para 1 byte/píxel 
+ *
+ *   databit:       array com os pixeis
+ *   datauchar:     array auxiliar vazio onde serão armazenados os pixeis descomprimidos 
+ *   width:		    comprimento
+ *	 height:		largura
+ */
 void bit_to_unsigned_char(unsigned char *databit, unsigned char *datauchar, int width, int height)
 {
     int x, y;
@@ -188,6 +227,13 @@ void bit_to_unsigned_char(unsigned char *databit, unsigned char *datauchar, int 
     }
 }
 
+/*
+ * Função: netpbm_get_token
+ * ----------------------------
+ *	 Lê uma imagem e converte-a para a estrutura IVC
+ *
+ *	 filename:	caminho para a imagem
+ */
 IVC *vc_read_image(char *filename)
 {
     FILE *file = NULL;
@@ -316,6 +362,14 @@ IVC *vc_read_image(char *filename)
     return image;
 }
 
+/*
+ * Função: vc_write_image
+ * ----------------------------
+ *	 Escreve uma imagem da estrutura IVC
+ *
+ *	 filename:	caminho + nome para guardar a imagem
+ *	 image:		endereço de memória da imagem
+ */
 int vc_write_image(char *filename, IVC *image)
 {
     FILE *file = NULL;
@@ -606,188 +660,194 @@ int vc_binary_close_circular(IVC *src, IVC *dst, int kernelErode, int kernelDila
  *
  *   Retorna    : um array de estruturas de blobs (objectos), com respectivas etiquetas.
  */
-OVC* vc_binary_blob_labelling(IVC *src, IVC *dst, int *nlabels)
+OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels)
 {
-	unsigned char *datasrc = (unsigned char *)src->data;
-	unsigned char *datadst = (unsigned char *)dst->data;
+	unsigned char* datasrc = (unsigned char*)src->data;
+	unsigned char* datadst = (unsigned char*)dst->data;
 	int width = src->width;
 	int height = src->height;
 	int bytesperline = src->bytesperline;
 	int channels = src->channels;
-	int x, y, a, b;
-	long int i, size;
-	long int posX, posA, posB, posC, posD;
-	int labeltable[256] = { 0 };
+	int x, y, a, b; // a e b são variáveis auxiliares para percorrer tabela das etiquetas
+	long int i, size; // i = variável auxiliar para percorrer imagem original, etc.
+	long int posX;
+	int A, B, C, D;
+	int labeltable[256] = { 0 }; // { 0 } inicializa todas as posições do array a 0
 	int labelarea[256] = { 0 };
 	int label = 1; // Etiqueta inicial.
-	int num, tmplabel;
-	OVC *blobs; // Apontador para array de blobs (objectos) que será retornado desta função.
+	int lowestLabel, tmplabel; // lowestLabel = var auxiliar para etiqueta
+	// tmplabel = var auxiliar para percorrer tabela de etiquetas (para ser mais fácil de ler: usa um nome diferente)
+	OVC* blobs; // Apontador para array de blobs (objectos) que será retornado nesta função.
 
 	// Verificação de erros
-	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL)) return 0;
-	if ((src->width != dst->width) || (src->height != dst->height) || (src->channels != dst->channels)) return NULL;
+	if ((width <= 0) || (height <= 0) || (datasrc == NULL) || (datadst == NULL)) return 0;
+	if ((width != dst->width) || (height != dst->height) || (channels != dst->channels)) return NULL;
 	if (channels != 1) return NULL;
 
-	// Copia dados da imagem binária para imagem grayscale
+	// Copia dados da imagem binária para a imagem grayscale
 	memcpy(datadst, datasrc, bytesperline * height);
 
 	// Todos os pixéis de plano de fundo devem obrigatóriamente ter valor 0
 	// Todos os pixéis de primeiro plano devem obrigatóriamente ter valor 255
 	// Serão atribuídas etiquetas no intervalo [1,254]
 	// Este algoritmo está assim limitado a 255 labels
-	for (i = 0, size = bytesperline * height; i<size; i++)
-	{
+	for (i = 0, size = bytesperline * height; i < size; i++)
+	{ // para dar se tivermos píxeis com valores iguais a: 0 ou 1 || 0 ou 255
 		if (datadst[i] != 0) datadst[i] = 255;
 	}
 
 	// Limpa os rebordos da imagem binária
-	for (y = 0; y<height; y++)
+	// (porque não há objetos só com 1 píxel)
+	for (y = 0; y < height; y++) // Limpa rebordos verticais 
 	{
-		datadst[y * bytesperline + 0 * channels] = 0;
-		datadst[y * bytesperline + (width - 1) * channels] = 0;
+		datadst[y * bytesperline + 0 * channels] = 0; // Limpa rebordo vertical esquerdo
+		datadst[y * bytesperline + (width - 1) * channels] = 0; // Limpa rebordo vertical direito
 	}
-	for (x = 0; x<width; x++)
+	for (x = 0; x < width; x++) // Limpa rebordos horizontais
 	{
-		datadst[0 * bytesperline + x * channels] = 0;
-		datadst[(height - 1) * bytesperline + x * channels] = 0;
+		datadst[0 * bytesperline + x * channels] = 0; // Limpa rebordo horizontal superior
+		datadst[(height - 1) * bytesperline + x * channels] = 0; // Limpa rebordo horizontal inferior
 	}
 
-	// Efectua a etiquetagem
-	for (y = 1; y<height - 1; y++)
+	// Efetua a etiquetagem
+	// (Para cada píxel...)
+	for (y = 1; y < height - 1; y++)
 	{
-		for (x = 1; x<width - 1; x++)
+		for (x = 1; x < width - 1; x++)
 		{
-			// Kernel:
-			// A B C
-			// D X
+			// Píxel a ser analisado: X
+			// Vizinhos: A,B,C,D
+			// A | B | C 
+			// D | X | 
 
-		/* 	posA = (y - 1) * bytesperline + (x - 1) * channels; // A
-			posB = (y - 1) * bytesperline + x * channels; // B
-			posC = (y - 1) * bytesperline + (x + 1) * channels; // C
-			posD = y * bytesperline + (x - 1) * channels; // D
-			posX = y * bytesperline + x * channels; // X */
+			A = (int) datadst[(y - 1) * bytesperline + (x - 1) * channels];
+			B = (int) datadst[(y - 1) * bytesperline + x * channels];
+			C = (int) datadst[(y - 1) * bytesperline + (x + 1) * channels];
+			D = (int) datadst[y * bytesperline + (x - 1) * channels];
+			posX = y * bytesperline + x * channels; // X
 
-			posA = (int) datadst[(y - 1) * bytesperline + (x - 1) * channels];
-            posB = (int) datadst[(y - 1) * bytesperline + x * channels];
-            posC = (int) datadst[(y - 1) * bytesperline + (x + 1) * channels];
-            posD = (int) datadst[y * bytesperline + (x - 1) * channels];
-            posX = y * bytesperline + x * channels; // X
-
-			// Se o pixel foi marcado
+			// Se o píxel a ser analisado for branco (encontramos parte de um blob)
 			if (datadst[posX] != 0)
-			{
-				if ((datadst[posA] == 0) && (datadst[posB] == 0) && (datadst[posC] == 0) && (datadst[posD] == 0))
+			{ // Se os vizinhos A,B,C,D = 0
+				if ((A == 0) && (B == 0) && (C == 0) && (D == 0))
 				{
-					datadst[posX] = label;
-					labeltable[label] = label;
+					datadst[posX] = label; // Encontrou um novo objeto (atribui-lhe nova etiqueta)
+					labeltable[label] = label; // Adiciona label à tabela das etiquetas
 					label++;
 				}
-				else
+				else // píxel X = etiqueta de vizinho A,B,C,D com menor valor (não incluindo 0)
 				{
-					num = 255;
+					lowestLabel = 255; // Etiqueta de menor valor (inicialização)
 
 					// Se A está marcado
-					if (datadst[posA] != 0) num = labeltable[datadst[posA]];
-					// Se B está marcado, e é menor que a etiqueta "num"
-					if ((datadst[posB] != 0) && (labeltable[datadst[posB]] < num)) num = labeltable[datadst[posB]];
-					// Se C está marcado, e é menor que a etiqueta "num"
-					if ((datadst[posC] != 0) && (labeltable[datadst[posC]] < num)) num = labeltable[datadst[posC]];
-					// Se D está marcado, e é menor que a etiqueta "num"
-					if ((datadst[posD] != 0) && (labeltable[datadst[posD]] < num)) num = labeltable[datadst[posD]];
+					if (A != 0) lowestLabel = labeltable[A];
+					// Se B está marcado, e é menor que a etiqueta "lowestLabel"
+					if ((B != 0) && (labeltable[B] < lowestLabel)) lowestLabel = labeltable[B];
+					// Se C está marcado, e é menor que a etiqueta "lowestLabel"
+					if ((C != 0) && (labeltable[C] < lowestLabel)) lowestLabel = labeltable[C];
+					// Se D está marcado, e é menor que a etiqueta "lowestLabel"
+					if ((D != 0) && (labeltable[D] < lowestLabel)) lowestLabel = labeltable[D];
 
-					// Atribui a etiqueta ao pixel
-					datadst[posX] = num;
-					labeltable[num] = num;
+					// Atribui a etiqueta ao píxel
+					datadst[posX] = lowestLabel;
+					labeltable[lowestLabel] = lowestLabel;
 
-					// Actualiza a tabela de etiquetas
-					if (datadst[posA] != 0)
+					// Atualiza a tabela de etiquetas
+					if (A != 0) // Se o vizinho A está marcado
 					{
-						if (labeltable[datadst[posA]] != num)
+						if (labeltable[A] != lowestLabel) // Se o vizinho tiver uma etiqueta diferente da do píxel atual (X)
 						{
-							for (tmplabel = labeltable[datadst[posA]], a = 1; a<label; a++)
-							{
+							tmplabel = labeltable[A];
+							for (a = 1; a < label; a++) // Percorre os píxeis já etiquetados na tabela das etiquetas
+							{ // Se esta etiqueta do vizinho A for encontrada
 								if (labeltable[a] == tmplabel)
 								{
-									labeltable[a] = num;
+									labeltable[a] = lowestLabel; // Atualiza a etiqueta na tabela para o correto
 								}
 							}
 						}
 					}
-					if (datadst[posB] != 0)
+
+					if (B != 0) // Se o vizinho B está marcado
 					{
-						if (labeltable[datadst[posB]] != num)
+						if (labeltable[B] != lowestLabel)
 						{
-							for (tmplabel = labeltable[datadst[posB]], a = 1; a<label; a++)
+							tmplabel = labeltable[B];
+							for (a = 1; a < label; a++)
 							{
 								if (labeltable[a] == tmplabel)
 								{
-									labeltable[a] = num;
+									labeltable[a] = lowestLabel;
 								}
 							}
 						}
 					}
-					if (datadst[posC] != 0)
+
+					if (C != 0) // Se o vizinho C está marcado
 					{
-						if (labeltable[datadst[posC]] != num)
+						if (labeltable[C] != lowestLabel)
 						{
-							for (tmplabel = labeltable[datadst[posC]], a = 1; a<label; a++)
+							tmplabel = labeltable[C];
+							for (a = 1; a < label; a++)
 							{
 								if (labeltable[a] == tmplabel)
 								{
-									labeltable[a] = num;
+									labeltable[a] = lowestLabel;
 								}
 							}
 						}
 					}
-					if (datadst[posD] != 0)
+
+					if (D != 0) // Se o vizinho D está marcado
 					{
-						if (labeltable[datadst[posD]] != num)
+						if (labeltable[D] != lowestLabel)
 						{
-							for (tmplabel = labeltable[datadst[posC]], a = 1; a<label; a++)
+							tmplabel = labeltable[D];
+							for (a = 1; a < label; a++)
 							{
 								if (labeltable[a] == tmplabel)
 								{
-									labeltable[a] = num;
+									labeltable[a] = lowestLabel;
 								}
 							}
 						}
 					}
+
 				}
 			}
 		}
 	}
 
 	// Volta a etiquetar a imagem
-	for (y = 1; y<height - 1; y++)
+	for (y = 1; y < height - 1; y++)
 	{
-		for (x = 1; x<width - 1; x++)
+		for (x = 1; x < width - 1; x++)
 		{
 			posX = y * bytesperline + x * channels; // X
 
 			if (datadst[posX] != 0)
-			{
+			{ // Passa as etiquetas da tabela para os valores nos píxeis
 				datadst[posX] = labeltable[datadst[posX]];
 			}
 		}
 	}
 
-	//printf("\nMax Label = %d\n", label);
-
 	// Contagem do número de blobs
 	// Passo 1: Eliminar, da tabela, etiquetas repetidas
-	for (a = 1; a<label - 1; a++)
+	for (a = 1; a < label - 1; a++) // Para cada etiqueta
 	{
-		for (b = a + 1; b<label; b++)
+		for (b = a + 1; b < label; b++) // Compara com todas as etiquetas à frente
 		{
 			if (labeltable[a] == labeltable[b]) labeltable[b] = 0;
 		}
 	}
+
 	// Passo 2: Conta etiquetas e organiza a tabela de etiquetas, para que não hajam valores vazios (zero) entre etiquetas
 	*nlabels = 0;
-	for (a = 1; a<label; a++)
+	for (a = 1; a < label; a++)
 	{
 		if (labeltable[a] != 0)
-		{
+		{ // Escreve por cima nos primeiros índices. No fim, os índices > que *nlabels são "lixo"
 			labeltable[*nlabels] = labeltable[a]; // Organiza tabela de etiquetas
 			(*nlabels)++; // Conta etiquetas
 		}
@@ -795,12 +855,12 @@ OVC* vc_binary_blob_labelling(IVC *src, IVC *dst, int *nlabels)
 
 	// Se não há blobs
 	if (*nlabels == 0) return NULL;
-   
+
 	// Cria lista de blobs (objectos) e preenche a etiqueta
-	blobs = (OVC *)calloc((*nlabels), sizeof(OVC));
+	blobs = (OVC*)calloc((*nlabels), sizeof(OVC));
 	if (blobs != NULL)
 	{
-		for (a = 0; a<(*nlabels); a++) blobs[a].label = labeltable[a];
+		for (a = 0; a < (*nlabels); a++) blobs[a].label = labeltable[a];
 	}
 	else return NULL;
 
@@ -829,8 +889,9 @@ int vc_binary_blob_info(IVC *src, OVC *blobs, int nblobs)
 	long int sumx, sumy;
 
 	// Verificação de erros
-	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL)) return 0;
-	if (channels != 1) return 0;
+	if ((width <= 0) || (height <= 0) || (data == NULL)) return 0;
+    if ((blobs == NULL) || (nblobs <= 0)) return 0;
+    if (channels != 1) return 0;
 
     
 
@@ -911,6 +972,7 @@ int vc_binary_to_gray(IVC *original, IVC *binary, IVC *dst)
 	if ((original->width != binary->width) || (original->width != dst->width) || (original->height != binary->height) || 
         (original->height != dst->height) || (original->channels != binary->channels) || (original->channels != dst->channels)) return 0;
 	if (original->channels != 1) return 0;
+	if(dst->data == NULL) return 0;
 
     int size = original->width * original->height;
 
